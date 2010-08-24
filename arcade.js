@@ -1,3 +1,24 @@
+var Fighter = function(opts) {
+  opts.size   = (opts.size || 16).toString();
+  app         = opts.app;
+
+  var img, canvas, ctxt = null; 
+
+  this.getImage = function() {
+    return $('#' + opts.size + 'x' + opts.size + 'fighter')[0];
+  }
+
+  this.init = function() {
+    img    = this.getImage();
+    canvas = app.getCanvas();
+    ctxt   = app.getContext();
+
+    ctxt.drawImage(this.getImage(), 200, 200);
+  }
+
+  this.update = function() {
+  }
+}
 
 var Arcade = function(canvas) {
 
@@ -6,7 +27,8 @@ var Arcade = function(canvas) {
     canvasHeight : canvas.height()
   };
 
-  var ctxt = canvas[0].getContext("2d");
+  var ctxt     = canvas[0].getContext("2d");
+  var elements = [];
 
   var timer_id = null;
 
@@ -15,6 +37,9 @@ var Arcade = function(canvas) {
   }
 
   var gameloop = function() {
+    for (var i=0;i<elements.length; i++) {
+      elements[i].update();
+    }
     if (timer_id) {
       timer_id = setInterval(gameloop, 1);
     }
@@ -28,36 +53,30 @@ var Arcade = function(canvas) {
     clearInterval(timer_id);
   }
 
-}
+  this.getWidth = function() {
+    return app.canvasWidth;
+  }
 
-Shape = {
-  Circle : function(ctxt, x, y, radius, linewidth, color) {
-    ctxt.strokeStyle = color;
-    ctxt.lineWidth = linewidth || 1;
-    ctxt.beginPath();
-    ctxt.arc(x, y, radius, 0, 360, false);
-    ctxt.stroke();
-    ctxt.closePath();
-  },
+  this.getHeight = function() {
+    return app.canvasHeight;
+  }
 
-  Square : function(ctxt, x, y, size, color) {
-    ctxt.fillStyle = color;
-    ctxt.fillRect(x, y, x+size, y+size);
-  },
+  this.getContext = function() {
+    return ctxt;
+  }
 
-  Line : function(ctxt, x1, y1, x2, y2, linewidth, color) {
-    ctxt.strokeStyle = color || Color.red;
-    ctxt.lineWidth   = linewidth || 1;
-    ctxt.beginPath();
-    ctxt.moveTo(x1, y1);
-    ctxt.lineTo(x2, y2);
-    ctxt.stroke();
-    ctxt.closePath();
-  },
+  this.getCanvas = function() {
+    return canvas;
+  }
 
-  Cross : function(ctxt, x1, y1, x2, y2, linewidth, color) {
-    var line1 = Shape.Line(ctxt, x1, y1, x2, y2, linewidth, color);
-    var line2 = Shape.Line(ctxt, x2, y1, x1, y2, linewidth, color);
+  this.init = function() {
+    for (var i=0;i<elements.length; i++) {
+      elements[i].init();
+    }
+  }
+
+  this.add = function(obj) {
+    elements.push(obj);
   }
 
 }
@@ -70,156 +89,12 @@ Color = {
   blue  : '#00f'
 }
 
-Tile = function(ctxt, x, y, size, color) {
-  var props = {
-    x     : x,
-    y     : y,
-    size  : size  || 100,
-    color : color || Color.white
-  }
-  var mark      = null;
-  var markValue = null;
-
-  this.markX = function() {
-    mark = Shape.Cross(ctxt, x, y, (x+size), (y+size), 4, Color.red); 
-    markValue = 'X';
-  }
-
-  this.markO = function() {
-    var half = size / 2;
-    mark = Shape.Circle(ctxt, (x+half), (y+half), (half - (half/4)) , 4, Color.red); 
-    markValue = 'O';
-  }
-
-  this.marked = function() {
-    return markValue != null;
-  }
-
-  this.markedWith = function() {
-    return markValue;
-  }
-
-  var shape = Shape.Square(ctxt, props.x, props.y, props.size, props.color)
-
-}
-
-Tictactoe = function(ctxt, app) {
-  var size = tilesize;
-  var board = [];
-
-  var getColor = function(x, y) {
-    return ((x + y) % 2) ? Color.black : Color.white;
-  }
-
-  for (var x=0; x<3;x++){
-    board[x] = [];
-    for (var y=0; y<3; y++) {
-      board[x][y] = new Tile(ctxt, x*size, y*size, size, getColor(x, y))
-    }
-  }
-
-  var freeTiles = function() {
-    var tiles = [];
-    for (var x=0; x<3;x++){
-      for (var y=0; y<3; y++) {
-        if (!board[x][y].marked()) {
-          tiles.push([x,y]);
-        }
-      }
-    }
-    return tiles;
-  }
-
-  var eachtile = function(func) {
-    var results = [];
-    for (var x=0; x<3;x++){
-      for (var y=0; y<3; y++) {
-        results.push([x, y, func(board[x][y])]);
-      }
-    }
-    return results;
-  }
-
-  this.eachTile = function(func) {
-    return eachtile(func);
-  }
-
-  var checkWin = function(arr) {
-    for (var positions, i=0; positions=arr[i]; i++) {
-      var owner, mark, x, y = null;
-      for (var j=0; position = positions[j]; j++) {
-        y = position[0];
-        x = position[1];
-        mark = board[x][y].markedWith();
-        if (mark == null) {
-          break;
-        }
-        if (owner == null) {
-          owner = mark; // 0
-        } else {
-          if (owner == mark) {
-            // We're good, continue
-          } else {
-            // Not a winning combo, move on
-            break;
-          }
-        }
-      }
-      if (owner == mark) {
-        return owner;
-      }
-    }
-    return false;
-  }
-
-  var winningPositions = [
-
-    //
-    // Check horizontal values
-    //
-
-
-    [[0,0], [0,1], [0,2]],
-    [[1,0], [1,1], [1,2]],
-    [[2,0], [2,1], [2,2]],
-
-    //
-    // Check vertical values
-    //
-
-    [[0,0], [1,0], [2,0]],
-    [[0,1], [1,1], [2,1]],
-    [[0,2], [1,2], [2,2]],
-
-    //
-    // Check diagonal values
-    //
-
-    [[0,0], [1,1], [2,2]],
-    [[2,0], [1,1], [0,2]]
-
-    ];
-
-  var mark     = 'X';
-  var tiles    = freeTiles();
-  var complete = false;
-
-  while (tiles.length != 0 || !complete) {
-    var randomTile = tiles[(Math.floor(Math.random() * tiles.length))];
-    board[randomTile[0]][randomTile[1]]['mark' + mark]();
-    tiles = freeTiles();
-    mark = (mark == 'X') ? 'O' : 'X';
-    if (checkWin(winningPositions)) {
-      alert("Winner is " + winner);
-      complete = true;
-    }
-  }
-
-}
-
 $(function () {
     var arcade = new Arcade($("#canvas"));
-    var game = new Tictactoe(ctxt, app);
-
+    arcade.add( new Fighter({
+        size : 32,
+        app  : arcade
+      }));
+    arcade.init();
   });
 
