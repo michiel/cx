@@ -1,5 +1,13 @@
+var Color = {
+  black : '#000',
+  white : '#fff',
+  red   : '#f00',
+  green : '#0f0',
+  blue  : '#00f'
+}
+
 var Fighter = function(opts) {
-  opts.size   = (opts.size || 16).toString();
+  opts.size   = opts.size || 16;
   app         = opts.app;
 
   var img, canvas, ctxt = null; 
@@ -13,10 +21,15 @@ var Fighter = function(opts) {
     canvas = app.getCanvas();
     ctxt   = app.getContext();
 
-    ctxt.drawImage(this.getImage(), 200, 200);
+    ctxt.drawImage(
+      this.getImage(), 
+      0 + (opts.size / 2),
+      app.getHeight() - (opts.size / 2)
+    );
   }
 
   this.update = function() {
+    console.log('fighter.update');
   }
 }
 
@@ -30,6 +43,8 @@ var Arcade = function(canvas) {
   var ctxt     = canvas[0].getContext("2d");
   var elements = [];
 
+  var timer_interval = 5000;
+
   var timer_id = null;
 
   this.isRunning = function() {
@@ -37,16 +52,17 @@ var Arcade = function(canvas) {
   }
 
   var gameloop = function() {
+    console.log('app.gameloop');
     for (var i=0;i<elements.length; i++) {
       elements[i].update();
     }
     if (timer_id) {
-      timer_id = setInterval(gameloop, 1);
+      timer_id = setTimeout(gameloop, timer_interval);
     }
   }
 
   this.start = function() {
-    timer_id = setInterval(gameloop, 1);
+    timer_id = setTimeout(gameloop, timer_interval);
   }
 
   this.stop = function() {
@@ -81,14 +97,6 @@ var Arcade = function(canvas) {
 
 }
 
-Color = {
-  black : '#000',
-  white : '#fff',
-  red   : '#f00',
-  green : '#0f0',
-  blue  : '#00f'
-}
-
 $(function () {
     var arcade = new Arcade($("#canvas"));
     arcade.add( new Fighter({
@@ -96,5 +104,6 @@ $(function () {
         app  : arcade
       }));
     arcade.init();
+    arcade.start();
   });
 
