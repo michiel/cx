@@ -12,6 +12,8 @@ var Fighter = function(opts) {
 
   var img, canvas, ctxt, xPos, yPos = null; 
 
+  var goingRight = true;
+
   this.getImage = function() {
     return $('#' + opts.size + 'x' + opts.size + 'fighter')[0];
   }
@@ -28,7 +30,18 @@ var Fighter = function(opts) {
 
   this.update = function() {
     console.log('fighter.update');
-    xPos += 10;
+    if (xPos > (app.getWidth() + (opts.size / 2))) {
+      goingRight = false;
+    } else if (xPos < (opts.size / 2)) {
+      goingRight = true;
+    }
+
+    if (goingRight) {
+      xPos += 40;
+    } else {
+      xPos -= 40;
+    }
+
     ctxt.drawImage(this.getImage(), xPos, yPos);
   }
 }
@@ -43,7 +56,7 @@ var Arcade = function(canvas) {
   var ctxt     = canvas[0].getContext("2d");
   var elements = [];
 
-  var timer_interval = 1000;
+  var timer_interval = 300;
 
   var timer_id = null;
 
