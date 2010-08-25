@@ -8,9 +8,9 @@ var Color = {
 
 var Fighter = function(opts) {
   opts.size   = opts.size || 16;
-  app         = opts.app;
+  var app     = opts.app;
 
-  var img, canvas, ctxt = null; 
+  var img, canvas, ctxt, xPos, yPos = null; 
 
   this.getImage = function() {
     return $('#' + opts.size + 'x' + opts.size + 'fighter')[0];
@@ -20,16 +20,16 @@ var Fighter = function(opts) {
     img    = this.getImage();
     canvas = app.getCanvas();
     ctxt   = app.getContext();
+    xPos   = 0 + (opts.size / 2);
+    yPos   = app.getHeight() - (opts.size / 2);
 
-    ctxt.drawImage(
-      this.getImage(), 
-      0 + (opts.size / 2),
-      app.getHeight() - (opts.size / 2)
-    );
+    ctxt.drawImage(this.getImage(), xPos, yPos);
   }
 
   this.update = function() {
     console.log('fighter.update');
+    xPos += 10;
+    ctxt.drawImage(this.getImage(), xPos, yPos);
   }
 }
 
@@ -43,7 +43,7 @@ var Arcade = function(canvas) {
   var ctxt     = canvas[0].getContext("2d");
   var elements = [];
 
-  var timer_interval = 5000;
+  var timer_interval = 1000;
 
   var timer_id = null;
 
@@ -53,6 +53,7 @@ var Arcade = function(canvas) {
 
   var gameloop = function() {
     console.log('app.gameloop');
+    ctxt.clearRect(0, 0, app.canvasWidth, app.canvasHeight);
     for (var i=0;i<elements.length; i++) {
       elements[i].update();
     }
